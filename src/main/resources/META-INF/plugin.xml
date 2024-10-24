@@ -1,18 +1,21 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.ssharaev.intelijk8senvplugin</id>
-    <name>intelij-k8s-env-plugin</name>
+    <id>com.ssharaev.k8sEnv</id>
+    <name>intellij-k8s-env</name>
     <vendor>ssharaev</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.gradle</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.ssharaev.intelijk8senvplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.runConfiguration.IdeaRunConfigurationExtension" id="k8sEnv"/>
     </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.ssharaev.intelijk8senvplugin.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
+    <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+        <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.runConfiguration.GradleK8sEnvExecutionEnvironmentProvider" order="first"/>
+    </extensions>
+
 </idea-plugin>

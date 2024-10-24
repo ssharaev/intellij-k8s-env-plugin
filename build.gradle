@@ -1,0 +1,57 @@
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+
+plugins {
+  id("java")
+  id ("idea")
+  id("org.jetbrains.intellij") version "1.17.3"
+  alias(libs.plugins.changelog) // Gradle Changelog Plugin
+}
+
+group = "com.ssharaev"
+version = "0.0.1-alfa"
+
+repositories {
+  mavenCentral()
+
+}
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+}
+
+// See https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
+intellij {
+  version.set("2023.3.7")
+  plugins = [
+          "java",
+          "gradle",
+          "maven"
+  ]
+}
+
+
+
+// Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
+changelog {
+  groups.empty()
+  repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
+}
+
+dependencies {
+  implementation 'io.kubernetes:client-java:21.0.2'
+  compileOnly 'org.projectlombok:lombok:1.18.24'
+  annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+  testImplementation(libs.junit)
+}
+
+tasks {
+  buildSearchableOptions {
+    enabled = false
+  }
+
+  patchPluginXml {
+    sinceBuild.set("233")
+    untilBuild.set("242.*")
+  }
+}
