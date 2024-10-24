@@ -30,10 +30,9 @@ public class GradleK8sEnvExecutionEnvironmentProvider implements GradleExecution
                 .map(provider -> provider.createExecutionEnvironment(project, task, executor))
                 .orElse(null);
 
-        if (environment != null && environment.getRunProfile() instanceof GradleRunConfiguration) {
+        if (environment != null && environment.getRunProfile() instanceof GradleRunConfiguration targetConfig) {
             final ApplicationConfiguration sourceConfig = (ApplicationConfiguration) task.getRunProfile();
-            final GradleRunConfiguration targetConfig = (GradleRunConfiguration) environment.getRunProfile();
-            Map<String, String> env = configMapEnvProvider.getEnv(PluginSettingsProvider.getEnvFileSetting(sourceConfig));
+            Map<String, String> env = configMapEnvProvider.getEnv(PluginSettingsProvider.getPluginSetting(sourceConfig));
             targetConfig.getSettings().getEnv().putAll(env);
         }
 

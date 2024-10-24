@@ -5,15 +5,21 @@ import com.intellij.openapi.util.Key;
 import com.ssharaev.k8s.env.plugin.PluginSettings;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Optional;
+
 public class PluginSettingsProvider{
+
+    private static final PluginSettings PLUGIN_SETTINGS =
+            new PluginSettings("dev", List.of("dev-configmap", "dev-configmap-two"));
 
     private static final Key<PluginSettings> PLUGIN_SETTINGS_KEY = new Key<>("EnvFile Settings");
 
-    public static PluginSettings getEnvFileSetting(@NotNull RunConfigurationBase<?> runConfigurationBase) {
-        return runConfigurationBase.getCopyableUserData(PLUGIN_SETTINGS_KEY);
+    public static PluginSettings getPluginSetting(@NotNull RunConfigurationBase<?> runConfigurationBase) {
+        return Optional.ofNullable(runConfigurationBase.getCopyableUserData(PLUGIN_SETTINGS_KEY)).orElse(PLUGIN_SETTINGS);
     }
 
-    public static Key<PluginSettings> getKey() {
-        return PLUGIN_SETTINGS_KEY;
+    public static void putData(@NotNull RunConfigurationBase<?> runConfigurationBase, PluginSettings settings) {
+        runConfigurationBase.putCopyableUserData(PLUGIN_SETTINGS_KEY, settings);
     }
 }

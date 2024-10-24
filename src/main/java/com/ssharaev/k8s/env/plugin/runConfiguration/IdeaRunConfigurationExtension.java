@@ -34,22 +34,22 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
     @NotNull
     @Override
     protected String getSerializationId() {
-        return EnvK8sConfigurationEditor.getSerializationId();
+        return EnvK8sRunConfigurationEditor.getSerializationId();
     }
 
     @Override
     protected void writeExternal(@NotNull RunConfigurationBase runConfiguration, @NotNull Element element) throws WriteExternalException {
-        EnvK8sConfigurationEditor.writeExternal(runConfiguration, element);
+        EnvK8sRunConfigurationEditor.writeExternal(runConfiguration, element);
     }
 
     @Override
     protected void readExternal(@NotNull RunConfigurationBase runConfiguration, @NotNull Element element) throws InvalidDataException {
-        EnvK8sConfigurationEditor.readExternal(runConfiguration, element);
+        EnvK8sRunConfigurationEditor.readExternal(runConfiguration, element);
     }
 
     @Override
-    protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) throws Exception {
-        EnvK8sConfigurationEditor.validateConfiguration(configuration, isExecution);
+    protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) {
+        EnvK8sRunConfigurationEditor.validateConfiguration(configuration, isExecution);
     }
 
     /**
@@ -63,7 +63,7 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
             @NotNull final JavaParameters params,
             final RunnerSettings runnerSettings
     ) {
-        Map<String, String> env = configMapEnvProvider.getEnv(PluginSettingsProvider.getEnvFileSetting(configuration));
+        Map<String, String> env = configMapEnvProvider.getEnv(PluginSettingsProvider.getPluginSetting(configuration));
         params.getEnv().putAll(env);
     }
 
