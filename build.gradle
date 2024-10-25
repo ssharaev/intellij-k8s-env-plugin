@@ -3,7 +3,7 @@
 plugins {
   id("java")
   id ("idea")
-  id("org.jetbrains.intellij") version "1.17.3"
+  id("org.jetbrains.intellij") version "1.17.4"
   alias(libs.plugins.changelog) // Gradle Changelog Plugin
 }
 
