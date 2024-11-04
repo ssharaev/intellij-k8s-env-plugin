@@ -13,6 +13,7 @@ public final class ConfigMapEnvProvider implements EnvProvider {
 
     @Override
     public Map<String, String> getEnv(PluginSettings pluginSettings) {
+
         return kubernetesService.getEnvFromConfigmaps(pluginSettings.getNamespace(), pluginSettings.getConfigmapNames());
     }
 }

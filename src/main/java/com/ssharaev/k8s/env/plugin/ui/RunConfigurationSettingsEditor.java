@@ -10,23 +10,23 @@ import javax.swing.*;
 
 public class RunConfigurationSettingsEditor<T extends RunConfigurationBase<?>> extends SettingsEditor<T> {
 
-    private final RunConfigurationPanel panel;
+    private final RunConfigurationPanelProvider panelProvider;
 
     public RunConfigurationSettingsEditor() {
-        this.panel = new RunConfigurationPanel();
+        this.panelProvider = new RunConfigurationPanelProvider();
     }
 
     @Override
     protected void resetEditorFrom(@NotNull T configuration) {
         PluginSettings state = PluginSettingsProvider.getPluginSetting(configuration);
         if (state != null) {
-            panel.setState(state);
+            panelProvider.setState(state);
         }
     }
 
     @Override
     protected void applyEditorTo(@NotNull T configuration) {
-        PluginSettings state = panel.getState();
+        PluginSettings state = panelProvider.getState();
         if (state != null) {
             PluginSettingsProvider.putData(configuration, state);
         }
@@ -34,6 +34,6 @@ public class RunConfigurationSettingsEditor<T extends RunConfigurationBase<?>> e
 
     @Override
     protected @NotNull JComponent createEditor() {
-        return panel;
+        return panelProvider.getPanel();
     }
 }

@@ -32,6 +32,7 @@ public final class KubernetesService {
     }
 
     public Map<String, String> getEnvFromConfigmaps(@NotNull String namespace, @NotNull Collection<String> configmapNames) {
+        LOGGER.debug("Start searching k8s env for namespace: " + namespace + " and configmap list: " + configmapNames);
         if (configmapNames.isEmpty()) {
             return Map.of();
         }
