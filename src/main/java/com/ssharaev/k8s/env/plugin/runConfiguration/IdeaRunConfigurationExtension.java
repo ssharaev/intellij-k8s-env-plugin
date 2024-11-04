@@ -9,6 +9,7 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
 import com.ssharaev.k8s.env.plugin.services.providers.ConfigMapEnvProvider;
+import com.ssharaev.k8s.env.plugin.ui.RunConfigurationSettingsEditor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +29,7 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
     @Nullable
     @Override
     protected <P extends RunConfigurationBase<?>> SettingsEditor<P> createEditor(@NotNull P configuration) {
-        return null;
+        return new RunConfigurationSettingsEditor<>();
     }
 
     @NotNull

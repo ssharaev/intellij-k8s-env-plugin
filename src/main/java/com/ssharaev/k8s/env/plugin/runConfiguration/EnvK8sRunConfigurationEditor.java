@@ -10,11 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
+import static com.ssharaev.k8s.env.plugin.Utils.CONFIGMAP_DELIMITER;
+
 public class EnvK8sRunConfigurationEditor {
 
     private static final String NAMESPACE_FIELD = "namespace";
     private static final String CONFIGMAP_NAMES_FIELD = "configmapNames";
-    private static final String CONFIGMAP_DELIMITER = ";";
 
     public static @NotNull String getSerializationId() {
         return "com.ssharaev.k8s-env-run-configuration";
