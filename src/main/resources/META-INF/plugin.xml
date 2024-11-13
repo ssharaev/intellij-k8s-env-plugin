@@ -1,14 +1,12 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.ssharaev.k8sEnv</id>
-    <name>K8s Env</name>
-    <vendor>ssharaev</vendor>
+    <name>Kubernetes Run Configuration Env</name>
+    <vendor email="sviatoslav.sharaev@gmail.com">Slava Sharaev</vendor>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.gradle</depends>
-
-    <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
         <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.runConfiguration.IdeaRunConfigurationExtension" id="k8sEnv"/>
@@ -18,4 +16,15 @@
         <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.runConfiguration.GradleK8sEnvExecutionEnvironmentProvider" order="first"/>
     </extensions>
 
+    <description>
+        <![CDATA[
+Provides run configuration environment variables from kubernetes</p>
+Support several modes:
+<ul>
+    <li>Configmap + secrets</li>
+    <li>Pod vault</li>
+    <li>Pod env</li>
+</ul>
+]]>
+    </description>
 </idea-plugin>
