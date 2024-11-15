@@ -2,7 +2,7 @@ package com.ssharaev.k8s.env.plugin.runConfiguration;
 
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
-import com.ssharaev.k8s.env.plugin.PluginSettings;
+import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,10 @@ public class EnvK8sRunConfigurationEditor {
         if (namespace == null && configmapNames == null) {
             return;
         }
-        PluginSettings settings = new PluginSettings(namespace, configmapNames);
+        PluginSettings settings = PluginSettings.builder()
+                .namespace(namespace)
+                .configmapNames(configmapNames)
+                .build();
         PluginSettingsProvider.putData(runConfiguration, settings);
     }
 

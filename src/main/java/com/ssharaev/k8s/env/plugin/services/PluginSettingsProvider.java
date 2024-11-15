@@ -2,21 +2,17 @@ package com.ssharaev.k8s.env.plugin.services;
 
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.openapi.util.Key;
-import com.ssharaev.k8s.env.plugin.PluginSettings;
+import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 
 public class PluginSettingsProvider{
 
-    private static final PluginSettings PLUGIN_SETTINGS =
-            new PluginSettings("dev", List.of("dev-configmap", "dev-configmap-two"));
-
     private static final Key<PluginSettings> PLUGIN_SETTINGS_KEY = new Key<>("EnvFile Settings");
 
     public static PluginSettings getPluginSetting(@NotNull RunConfigurationBase<?> runConfigurationBase) {
-        return Optional.ofNullable(runConfigurationBase.getCopyableUserData(PLUGIN_SETTINGS_KEY)).orElse(PLUGIN_SETTINGS);
+        return Optional.ofNullable(runConfigurationBase.getCopyableUserData(PLUGIN_SETTINGS_KEY)).orElse(new PluginSettings());
     }
 
     public static void putData(@NotNull RunConfigurationBase<?> runConfigurationBase, PluginSettings settings) {

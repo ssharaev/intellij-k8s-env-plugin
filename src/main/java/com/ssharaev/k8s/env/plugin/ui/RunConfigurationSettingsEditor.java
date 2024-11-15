@@ -2,7 +2,7 @@ package com.ssharaev.k8s.env.plugin.ui;
 
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.openapi.options.SettingsEditor;
-import com.ssharaev.k8s.env.plugin.PluginSettings;
+import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
 import org.jetbrains.annotations.NotNull;
 

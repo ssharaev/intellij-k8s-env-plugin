@@ -8,7 +8,8 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
-import com.ssharaev.k8s.env.plugin.services.providers.ConfigMapEnvProvider;
+import com.ssharaev.k8s.env.plugin.services.providers.CombinedEnvProvider;
+import com.ssharaev.k8s.env.plugin.services.providers.EnvProvider;
 import com.ssharaev.k8s.env.plugin.ui.RunConfigurationSettingsEditor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
 
-    private final ConfigMapEnvProvider configMapEnvProvider = new ConfigMapEnvProvider();
+    private final EnvProvider envProvider = new CombinedEnvProvider();
 
     @Nullable
     @Override
@@ -64,7 +65,7 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
             @NotNull final JavaParameters params,
             final RunnerSettings runnerSettings
     ) {
-        Map<String, String> env = configMapEnvProvider.getEnv(PluginSettingsProvider.getPluginSetting(configuration));
+        Map<String, String> env = envProvider.getEnv(PluginSettingsProvider.getPluginSetting(configuration));
         params.getEnv().putAll(env);
     }
 

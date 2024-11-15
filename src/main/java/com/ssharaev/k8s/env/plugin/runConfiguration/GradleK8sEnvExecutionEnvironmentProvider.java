@@ -6,7 +6,8 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.task.ExecuteRunConfigurationTask;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
-import com.ssharaev.k8s.env.plugin.services.providers.ConfigMapEnvProvider;
+import com.ssharaev.k8s.env.plugin.services.providers.CombinedEnvProvider;
+import com.ssharaev.k8s.env.plugin.services.providers.EnvProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.build.GradleExecutionEnvironmentProvider;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 public class GradleK8sEnvExecutionEnvironmentProvider implements GradleExecutionEnvironmentProvider {
 
-    private final ConfigMapEnvProvider configMapEnvProvider = new ConfigMapEnvProvider();
+    private final EnvProvider envProvider = new CombinedEnvProvider();
 
     @Override
     public boolean isApplicable(@NotNull ExecuteRunConfigurationTask task) {
@@ -32,7 +33,7 @@ public class GradleK8sEnvExecutionEnvironmentProvider implements GradleExecution
 
         if (environment != null && environment.getRunProfile() instanceof GradleRunConfiguration targetConfig) {
             final ApplicationConfiguration sourceConfig = (ApplicationConfiguration) task.getRunProfile();
-            Map<String, String> env = configMapEnvProvider.getEnv(PluginSettingsProvider.getPluginSetting(sourceConfig));
+            Map<String, String> env = envProvider.getEnv(PluginSettingsProvider.getPluginSetting(sourceConfig));
             targetConfig.getSettings().getEnv().putAll(env);
         }
 

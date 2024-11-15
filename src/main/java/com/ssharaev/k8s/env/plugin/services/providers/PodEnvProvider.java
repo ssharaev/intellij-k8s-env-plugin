@@ -10,17 +10,20 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public final class ConfigMapEnvProvider implements EnvProvider {
+public final class PodEnvProvider implements EnvProvider {
 
     private final KubernetesService kubernetesService;
 
     @Override
     public boolean isApplicable(PluginSettings pluginSettings) {
-        return EnvMode.CONFIGMAP_AND_SECRET == pluginSettings.getEnvMode();
+        return EnvMode.POD_ENV == pluginSettings.getEnvMode();
     }
 
     @Override
     public Map<String, String> getEnv(PluginSettings pluginSettings) {
-        return kubernetesService.getEnvFromConfigmaps(pluginSettings.getNamespace(), pluginSettings.getConfigmapNames());
+        if (pluginSettings.getPodName() == null) {
+            return Map.of();
+        }
+        return kubernetesService.getEnvFromPod(pluginSettings.getNamespace(), pluginSettings.getPodName());
     }
 }
