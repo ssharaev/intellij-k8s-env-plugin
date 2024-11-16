@@ -35,7 +35,7 @@ public final class CombinedEnvProvider implements EnvProvider {
 
     @Override
     public Map<String, String> getEnv(PluginSettings pluginSettings) {
-        if (!isSettingsValid(pluginSettings)) {
+        if (isSettingsInvalid(pluginSettings)) {
             return Map.of();
         }
         return providers.stream()
@@ -47,7 +47,7 @@ public final class CombinedEnvProvider implements EnvProvider {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1));
     }
 
-    private boolean isSettingsValid(PluginSettings pluginSettings) {
+    private boolean isSettingsInvalid(PluginSettings pluginSettings) {
         return StringUtils.isBlank(pluginSettings.getNamespace()) ||
 
                 pluginSettings.getEnvMode() == EnvMode.POD_ENV && StringUtils.isBlank(pluginSettings.getPodName()) ||
