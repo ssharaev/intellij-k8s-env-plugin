@@ -3,6 +3,7 @@ package com.ssharaev.k8s.env.plugin.runConfiguration;
 import com.intellij.execution.Executor;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.task.ExecuteRunConfigurationTask;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
@@ -18,7 +19,11 @@ import java.util.Optional;
 
 public class GradleK8sEnvExecutionEnvironmentProvider implements GradleExecutionEnvironmentProvider {
 
-    private final EnvProvider envProvider = new CombinedEnvProvider();
+    private final EnvProvider envProvider;
+
+    public GradleK8sEnvExecutionEnvironmentProvider() {
+        envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
+    }
 
     @Override
     public boolean isApplicable(@NotNull ExecuteRunConfigurationTask task) {

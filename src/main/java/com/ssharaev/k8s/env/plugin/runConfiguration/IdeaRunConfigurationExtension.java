@@ -4,13 +4,15 @@ import com.intellij.execution.RunConfigurationExtension;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunnerSettings;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
+import com.ssharaev.k8s.env.plugin.services.RunConfigurationEditorService;
 import com.ssharaev.k8s.env.plugin.services.providers.CombinedEnvProvider;
 import com.ssharaev.k8s.env.plugin.services.providers.EnvProvider;
-import com.ssharaev.k8s.env.plugin.ui.RunConfigurationSettingsEditor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,12 +21,18 @@ import java.util.Map;
 
 public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
 
-    private final EnvProvider envProvider = new CombinedEnvProvider();
+    private final EnvProvider envProvider;
+    private final RunConfigurationEditorService runConfigurationEditorService;
+
+    public IdeaRunConfigurationExtension() {
+        envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
+        runConfigurationEditorService = ApplicationManager.getApplication().getService(RunConfigurationEditorService.class);
+    }
 
     @Nullable
     @Override
     protected String getEditorTitle() {
-        return "Env from k8s";
+        return "Kubernetes Run Configuration Env";
     }
 
     @Nullable
@@ -36,29 +44,25 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
     @NotNull
     @Override
     protected String getSerializationId() {
-        return EnvK8sRunConfigurationEditor.getSerializationId();
+        return runConfigurationEditorService.getSerializationId();
     }
 
     @Override
     protected void writeExternal(@NotNull RunConfigurationBase runConfiguration, @NotNull Element element) throws WriteExternalException {
-        EnvK8sRunConfigurationEditor.writeExternal(runConfiguration, element);
+        runConfigurationEditorService.writeExternal(runConfiguration, element);
     }
 
     @Override
     protected void readExternal(@NotNull RunConfigurationBase runConfiguration, @NotNull Element element) throws InvalidDataException {
-        EnvK8sRunConfigurationEditor.readExternal(runConfiguration, element);
+        runConfigurationEditorService.readExternal(runConfiguration, element);
     }
 
     @Override
-    protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) {
-        EnvK8sRunConfigurationEditor.validateConfiguration(configuration, isExecution);
+    protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) throws ConfigurationException {
+        runConfigurationEditorService.validateConfiguration(configuration, isExecution);
     }
 
-    /**
-     * Unlike other extensions the IDEA extension
-     * calls this method instead of RunConfigurationExtensionBase#patchCommandLine method
-     * that we could have used to update environment variables.
-     */
+
     @Override
     public <T extends RunConfigurationBase<?>> void updateJavaParameters(
             @NotNull final T configuration,

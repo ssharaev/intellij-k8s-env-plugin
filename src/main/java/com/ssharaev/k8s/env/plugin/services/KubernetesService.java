@@ -8,6 +8,8 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.Config;
 import org.jetbrains.annotations.NotNull;
@@ -35,12 +37,32 @@ public final class KubernetesService {
             client = Config.defaultClient();
             Configuration.setDefaultApiClient(client);
             client.setHttpClient(client.getHttpClient().newBuilder()
-                    .readTimeout(10, TimeUnit.SECONDS) // Infinite read timeout
+                    .readTimeout(10, TimeUnit.SECONDS)
                     .build());
         } catch (IOException e) {
             throw new RuntimeException("Unable to connect to the k8s cluster", e);
         }
         this.api = new CoreV1Api(client);
+    }
+
+    public void connected() throws ApiException {
+        api.listNamespace().execute();
+    }
+
+    public List<String> getNamespaces() {
+        try {
+            return api.listNamespace().execute().getItems()
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(V1Namespace::getMetadata)
+                    .filter(Objects::nonNull)
+                    .map(V1ObjectMeta::getName)
+                    .filter(Objects::nonNull)
+                    .toList();
+        } catch (ApiException e) {
+            LOGGER.warn("Error while getting namespaces!", e);
+            return List.of();
+        }
     }
 
     public Map<String, String> getEnvFromConfigmaps(@NotNull String namespace, @NotNull Collection<String> configmapNames) {
@@ -94,6 +116,7 @@ public final class KubernetesService {
         return execInPod(namespace, podName, "printenv");
     }
 
+    // TODO change command
     public Map<String, String> getVaultEnvFromPod(@NotNull String namespace, @NotNull String podName) {
         LOGGER.debug("Start searching pod k8s vault env for namespace: " + namespace + " and pod name: " + podName);
         return execInPod(namespace, podName, "printenv");

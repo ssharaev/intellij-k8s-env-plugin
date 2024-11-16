@@ -7,13 +7,18 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.idea.maven</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.runConfiguration.IdeaRunConfigurationExtension" id="k8sEnv"/>
+        <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.runConfiguration.IdeaRunConfigurationExtension"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
         <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.runConfiguration.GradleK8sEnvExecutionEnvironmentProvider" order="first"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="org.jetbrains.idea.maven">
+        <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.runConfiguration.MavenK8sEnvExecutionEnvironmentProvider" order="first"/>
     </extensions>
 
     <description>

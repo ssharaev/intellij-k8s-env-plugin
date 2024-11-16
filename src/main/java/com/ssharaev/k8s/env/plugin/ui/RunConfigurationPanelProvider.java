@@ -10,6 +10,7 @@ import com.intellij.util.ui.UIUtil;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.util.List;
@@ -21,10 +22,11 @@ import static com.ssharaev.k8s.env.plugin.Utils.splitIfNotEmpty;
 public class RunConfigurationPanelProvider {
 
     private final JBTextField namespaceTextField;
+    private final ComboBox<String> envModeComboBox;
+
     private final InputTextPanel configmapsPanel;
     private final InputTextPanel secretsPanel;
     private final InputTextPanel podsPanel;
-    private final ComboBox<EnvMode> envModeList;
     @Getter
     private final JPanel panel;
 
@@ -34,30 +36,31 @@ public class RunConfigurationPanelProvider {
         this.configmapsPanel = new InputTextPanel("Configmaps names:", "Separate names with semicolon: configmap1;configmap2");
         this.secretsPanel = new InputTextPanel("Secrets names:", "Separate names with semicolon: secret1;secret2");
         this.podsPanel = new InputTextPanel("Pods names:", "Separate names with semicolon: pod1;pod2");
-        this.envModeList = new ComboBox<>(EnvMode.values());
-        envModeList.addItemListener(e -> updatePanel());
+        this.envModeComboBox = new ComboBox<>(EnvMode.beautyNames());
+        envModeComboBox.addItemListener(e -> updatePanel());
         JBLabel panelLabel = new JBLabel("K8s env");
         panelLabel.setFont(JBFont.h4().asBold());
 
-        this.panel =  FormBuilder.createFormBuilder()
+        FormBuilder builder = FormBuilder.createFormBuilder()
                 .addSeparator()
                 .addComponent(panelLabel)
-                .addLabeledComponent(new JBLabel("Environment mode:"), envModeList, 1, false)
-                .addLabeledComponent(new JBLabel("Namespace:"), namespaceTextField, 1, false)
-                .addComponent(configmapsPanel.getPanel())
-                .addComponent(secretsPanel.getPanel())
-                .addComponent(podsPanel.getPanel())
+                .addLabeledComponent(new JBLabel("Environment mode:"), envModeComboBox, 1, false)
+                .addLabeledComponent(new JBLabel("Namespace:"), namespaceTextField, 1, false);
+        configmapsPanel.addToBuilder(builder);
+        secretsPanel.addToBuilder(builder);
+        podsPanel.addToBuilder(builder);
+        this.panel = builder
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
         updatePanel();
     }
 
     public PluginSettings getState() {
-        EnvMode mode = EnvMode.values()[envModeList.getSelectedIndex()];
-        String namespace = namespaceTextField.getText();
+        EnvMode mode = EnvMode.values()[envModeComboBox.getSelectedIndex()];
+        String namespace = StringUtils.trimToNull(namespaceTextField.getText());
         List<String> configmapNames = splitIfNotEmpty(configmapsPanel.getText());
         List<String> secretNames = splitIfNotEmpty(secretsPanel.getText());
-        String podName = podsPanel.getText();
+        String podName = StringUtils.trimToNull(podsPanel.getText());
         return PluginSettings.builder()
                 .envMode(mode)
                 .namespace(namespace)
@@ -68,7 +71,10 @@ public class RunConfigurationPanelProvider {
     }
 
     public void setState(PluginSettings pluginSettings) {
-        envModeList.setItem(Optional.ofNullable(pluginSettings.getEnvMode()).orElse(EnvMode.CONFIGMAP_AND_SECRET));
+        String envModeName = Optional.ofNullable(pluginSettings.getEnvMode())
+                .orElse(EnvMode.CONFIGMAP_AND_SECRET)
+                .getBeautyName();
+        envModeComboBox.setItem(envModeName);
         namespaceTextField.setText(Optional.ofNullable(pluginSettings.getNamespace()).orElse("default"));
         configmapsPanel.setText(joinIfNotNull(pluginSettings.getConfigmapNames()));
         secretsPanel.setText(joinIfNotNull(pluginSettings.getSecretNames()));
@@ -76,7 +82,7 @@ public class RunConfigurationPanelProvider {
     }
 
     public void updatePanel() {
-        EnvMode mode = EnvMode.values()[envModeList.getSelectedIndex()];
+        EnvMode mode = EnvMode.values()[envModeComboBox.getSelectedIndex()];
         if (mode == EnvMode.CONFIGMAP_AND_SECRET) {
             this.podsPanel.hide();
             this.secretsPanel.show();
@@ -91,36 +97,34 @@ public class RunConfigurationPanelProvider {
         }
     }
 
-    public List<JComponent> getComponentsForWatcher() {
-        return List.of(envModeList, configmapsPanel.textField, secretsPanel.textField, podsPanel.textField);
-    }
-
-
-    @Getter
     public static class InputTextPanel {
         private final JTextField textField;
         private final JBLabel label;
         private final JBLabel tooltip;
-        private final JPanel panel;
 
         public InputTextPanel(String labelText, String tooltipText) {
             this.textField = new JBTextField();
             this.label = new JBLabel(labelText);
             this.tooltip = new JBLabel(tooltipText, UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
             this.tooltip.setBorder(JBUI.Borders.emptyLeft(10));
-            this.panel = FormBuilder.createFormBuilder()
-                    .addLabeledComponent(label, textField, 1, false)
+        }
+
+        public void addToBuilder(FormBuilder builder) {
+            builder.addLabeledComponent(label, textField, 1, false)
                     .addComponentToRightColumn(tooltip, 1)
-                    .addComponentFillVertically(new JPanel(), 0)
-                    .getPanel();
+                    .addComponentFillVertically(new JPanel(), 0);
         }
 
         public void hide() {
-            this.panel.setVisible(false);
+            this.textField.setVisible(false);
+            this.label.setVisible(false);
+            this.tooltip.setVisible(false);
         }
 
         public void show() {
-            this.panel.setVisible(true);
+            this.textField.setVisible(true);
+            this.label.setVisible(true);
+            this.tooltip.setVisible(true);
         }
 
         public String getText() {

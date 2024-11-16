@@ -21,7 +21,7 @@ public final class PodVaultEnvProvider implements EnvProvider {
 
     @Override
     public Map<String, String> getEnv(PluginSettings pluginSettings) {
-        if (pluginSettings.getPodName() == null) {
+        if (pluginSettings.getPodName() == null || pluginSettings.getPodName().isBlank()) {
             return Map.of();
         }
         return kubernetesService.getVaultEnvFromPod(pluginSettings.getNamespace(), pluginSettings.getPodName());
