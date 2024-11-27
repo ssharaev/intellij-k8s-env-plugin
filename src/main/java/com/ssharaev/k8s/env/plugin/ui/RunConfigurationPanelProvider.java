@@ -92,9 +92,7 @@ public class RunConfigurationPanelProvider {
     }
 
     public void setState(PluginSettings pluginSettings) {
-        String envModeName = Optional.ofNullable(pluginSettings.getEnvMode())
-                .orElse(EnvMode.CONFIGMAP_AND_SECRET)
-                .getBeautyName();
+        String envModeName = pluginSettings.getEnvMode().getBeautyName();
         envModeComboBox.setItem(envModeName);
         namespaceTextField.setText(Optional.ofNullable(pluginSettings.getNamespace()).orElse("default"));
         configmapsPanel.setText(joinIfNotNull(pluginSettings.getConfigmapNames()));
