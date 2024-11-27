@@ -21,14 +21,6 @@ import java.util.Map;
 
 public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
 
-    private final EnvProvider envProvider;
-    private final RunConfigurationEditorService runConfigurationEditorService;
-
-    public IdeaRunConfigurationExtension() {
-        envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
-        runConfigurationEditorService = ApplicationManager.getApplication().getService(RunConfigurationEditorService.class);
-    }
-
     @Nullable
     @Override
     protected String getEditorTitle() {
@@ -44,22 +36,22 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
     @NotNull
     @Override
     protected String getSerializationId() {
-        return runConfigurationEditorService.getSerializationId();
+        return ApplicationManager.getApplication().getService(RunConfigurationEditorService.class).getSerializationId();
     }
 
     @Override
     protected void writeExternal(@NotNull RunConfigurationBase runConfiguration, @NotNull Element element) throws WriteExternalException {
-        runConfigurationEditorService.writeExternal(runConfiguration, element);
+        ApplicationManager.getApplication().getService(RunConfigurationEditorService.class).writeExternal(runConfiguration, element);
     }
 
     @Override
     protected void readExternal(@NotNull RunConfigurationBase runConfiguration, @NotNull Element element) throws InvalidDataException {
-        runConfigurationEditorService.readExternal(runConfiguration, element);
+        ApplicationManager.getApplication().getService(RunConfigurationEditorService.class).readExternal(runConfiguration, element);
     }
 
     @Override
     protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) throws ConfigurationException {
-        runConfigurationEditorService.validateConfiguration(configuration, isExecution);
+        ApplicationManager.getApplication().getService(RunConfigurationEditorService.class).validateConfiguration(configuration, isExecution);
     }
 
 
@@ -69,6 +61,7 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
             @NotNull final JavaParameters params,
             final RunnerSettings runnerSettings
     ) {
+        EnvProvider envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
         Map<String, String> env = envProvider.getEnv(PluginSettingsProvider.getPluginSetting(configuration));
         params.getEnv().putAll(env);
     }

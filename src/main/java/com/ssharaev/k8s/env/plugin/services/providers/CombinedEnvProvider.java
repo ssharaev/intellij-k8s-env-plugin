@@ -5,6 +5,7 @@ import com.intellij.openapi.components.Service;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.services.KubernetesService;
+import com.ssharaev.k8s.env.plugin.services.ReplacementService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,13 +39,17 @@ public final class CombinedEnvProvider implements EnvProvider {
         if (isSettingsInvalid(pluginSettings)) {
             return Map.of();
         }
-        return providers.stream()
+        Map<String, String> result = providers.stream()
                 .filter(p -> p.isApplicable(pluginSettings))
                 .map(p -> p.getEnv(pluginSettings))
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1));
+        ReplacementService replacementService =
+                ApplicationManager.getApplication().getService(ReplacementService.class);
+        return replacementService.proceedReplacement(result, pluginSettings.getReplacementEntities());
+
     }
 
     private boolean isSettingsInvalid(PluginSettings pluginSettings) {

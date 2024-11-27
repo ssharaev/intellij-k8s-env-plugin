@@ -21,12 +21,6 @@ import java.util.Optional;
 
 public class MavenK8sEnvExecutionEnvironmentProvider implements MavenExecutionEnvironmentProvider {
 
-    private final EnvProvider envProvider;
-
-    public MavenK8sEnvExecutionEnvironmentProvider() {
-        envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
-    }
-
     @Override
     public boolean isApplicable(@NotNull ExecuteRunConfigurationTask task) {
         return task.getRunProfile() instanceof ApplicationConfiguration;
@@ -40,6 +34,7 @@ public class MavenK8sEnvExecutionEnvironmentProvider implements MavenExecutionEn
 
         if (environment != null && environment.getRunProfile() instanceof MavenRunConfiguration targetConfig) {
             final ApplicationConfiguration sourceConfig = (ApplicationConfiguration) task.getRunProfile();
+            EnvProvider envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
             Map<String, String> env = envProvider.getEnv(PluginSettingsProvider.getPluginSetting(sourceConfig));
             Optional.ofNullable(targetConfig.getRunnerSettings())
                     .map(MavenRunnerSettings::getEnvironmentProperties)

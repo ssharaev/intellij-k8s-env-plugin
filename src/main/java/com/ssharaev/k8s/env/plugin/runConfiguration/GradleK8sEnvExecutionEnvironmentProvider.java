@@ -19,12 +19,6 @@ import java.util.Optional;
 
 public class GradleK8sEnvExecutionEnvironmentProvider implements GradleExecutionEnvironmentProvider {
 
-    private final EnvProvider envProvider;
-
-    public GradleK8sEnvExecutionEnvironmentProvider() {
-        envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
-    }
-
     @Override
     public boolean isApplicable(@NotNull ExecuteRunConfigurationTask task) {
         return task.getRunProfile() instanceof ApplicationConfiguration;
@@ -38,6 +32,7 @@ public class GradleK8sEnvExecutionEnvironmentProvider implements GradleExecution
 
         if (environment != null && environment.getRunProfile() instanceof GradleRunConfiguration targetConfig) {
             final ApplicationConfiguration sourceConfig = (ApplicationConfiguration) task.getRunProfile();
+            EnvProvider envProvider = ApplicationManager.getApplication().getService(CombinedEnvProvider.class);
             Map<String, String> env = envProvider.getEnv(PluginSettingsProvider.getPluginSetting(sourceConfig));
             targetConfig.getSettings().getEnv().putAll(env);
         }
