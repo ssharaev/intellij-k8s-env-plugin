@@ -1,7 +1,9 @@
 package com.ssharaev.k8s.env.plugin.ui;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.NlsContexts;
+import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
@@ -10,13 +12,14 @@ import com.intellij.util.ui.*;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.model.ReplacementEntity;
+import com.ssharaev.k8s.env.plugin.services.KubernetesService;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.ssharaev.k8s.env.plugin.Utils.joinIfNotNull;
 import static com.ssharaev.k8s.env.plugin.Utils.splitIfNotEmpty;
@@ -24,19 +27,18 @@ import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
 public class RunConfigurationPanelProvider {
 
-    private final JBTextField namespaceTextField;
     private final ComboBox<String> envModeComboBox;
 
     private final InputTextPanel configmapsPanel;
     private final InputTextPanel secretsPanel;
     private final InputTextPanel podsPanel;
     private final ListTableModel<ReplacementEntity> replacementModel;
+    private final MutableCollectionComboBoxModel<String> namespaceComboBoxModel;
 
     @Getter
     private final JPanel panel;
 
     public RunConfigurationPanelProvider() {
-        this.namespaceTextField = new JBTextField("default");
         this.configmapsPanel = new InputTextPanel("Configmaps names:", "Separate names with semicolon: configmap1;configmap2");
         this.secretsPanel = new InputTextPanel("Secrets names:", "Separate names with semicolon: secret1;secret2");
         this.podsPanel = new InputTextPanel("Pods names:", "Separate names with semicolon: pod1;pod2");
@@ -45,6 +47,8 @@ public class RunConfigurationPanelProvider {
         this.replacementModel = new ListTableModel<>(
                 new RegexpTableColumnInfo("Regexp"),
                 new ReplacementTableColumnInfo("Replacement"));
+        this.namespaceComboBoxModel = new MutableCollectionComboBoxModel<>(new ArrayList<>());
+        ComboBox<String> namespaceComboBox = new ComboBox<>(namespaceComboBoxModel);
         JBTable replacementEntityTable = new JBTable(replacementModel);
 
         ToolbarDecorator decorator = ToolbarDecorator
@@ -60,7 +64,7 @@ public class RunConfigurationPanelProvider {
                 .addSeparator()
                 .addComponent(panelLabel)
                 .addLabeledComponent(new JBLabel("Environment mode:"), envModeComboBox, 1, false)
-                .addLabeledComponent(new JBLabel("Namespace:"), namespaceTextField, 1, false);
+                .addLabeledComponent(new JBLabel("Namespace:"), namespaceComboBox, 1, false);
         configmapsPanel.addToBuilder(builder);
         secretsPanel.addToBuilder(builder);
         podsPanel.addToBuilder(builder);
@@ -74,7 +78,7 @@ public class RunConfigurationPanelProvider {
 
     public PluginSettings getState() {
         EnvMode mode = EnvMode.values()[envModeComboBox.getSelectedIndex()];
-        String namespace = StringUtils.trimToNull(namespaceTextField.getText());
+        String namespace = StringUtils.trimToNull(namespaceComboBoxModel.getSelected());
         List<String> configmapNames = splitIfNotEmpty(configmapsPanel.getText());
         List<String> secretNames = splitIfNotEmpty(secretsPanel.getText());
         String podName = StringUtils.trimToNull(podsPanel.getText());
@@ -92,9 +96,11 @@ public class RunConfigurationPanelProvider {
     }
 
     public void setState(PluginSettings pluginSettings) {
+        KubernetesService kubernetesService = ApplicationManager.getApplication().getService(KubernetesService.class);
         String envModeName = pluginSettings.getEnvMode().getBeautyName();
+        namespaceComboBoxModel.update(kubernetesService.getNamespaces());
+        namespaceComboBoxModel.setSelectedItem(pluginSettings.getNamespace());
         envModeComboBox.setItem(envModeName);
-        namespaceTextField.setText(Optional.ofNullable(pluginSettings.getNamespace()).orElse("default"));
         configmapsPanel.setText(joinIfNotNull(pluginSettings.getConfigmapNames()));
         secretsPanel.setText(joinIfNotNull(pluginSettings.getSecretNames()));
         podsPanel.setText(pluginSettings.getPodName());
