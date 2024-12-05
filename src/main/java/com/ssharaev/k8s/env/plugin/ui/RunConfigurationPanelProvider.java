@@ -2,20 +2,21 @@ package com.ssharaev.k8s.env.plugin.ui;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.*;
+import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.ListTableModel;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.model.ReplacementEntity;
 import com.ssharaev.k8s.env.plugin.services.KubernetesService;
+import com.ssharaev.k8s.env.plugin.ui.replacement.RegexpTableColumnInfo;
+import com.ssharaev.k8s.env.plugin.ui.replacement.ReplacementTableColumnInfo;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class RunConfigurationPanelProvider {
     public RunConfigurationPanelProvider() {
         this.configmapsPanel = new InputTextPanel("Configmaps names:", "Separate names with semicolon: configmap1;configmap2");
         this.secretsPanel = new InputTextPanel("Secrets names:", "Separate names with semicolon: secret1;secret2");
-        this.podsPanel = new InputTextPanel("Pods names:", "Separate names with semicolon: pod1;pod2");
+        this.podsPanel = new InputTextPanel("Pod name prefix:", "E.g. you can use \"nginx\" instead of \"nginx-554b9c67f9-c5cv4\"");
         this.envModeComboBox = new ComboBox<>(EnvMode.beautyNames());
         this.envModeComboBox.addItemListener(e -> updatePanel());
         this.replacementModel = new ListTableModel<>(
@@ -121,89 +122,5 @@ public class RunConfigurationPanelProvider {
             this.configmapsPanel.hide();
             panel.repaint();
         }
-    }
-
-    public static class InputTextPanel {
-        private final JTextField textField;
-        private final JBLabel label;
-        private final JBLabel tooltip;
-
-        public InputTextPanel(String labelText, String tooltipText) {
-            this.textField = new JBTextField();
-            this.label = new JBLabel(labelText);
-            this.tooltip = new JBLabel(tooltipText, UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
-            this.tooltip.setBorder(JBUI.Borders.emptyLeft(10));
-        }
-
-        public void addToBuilder(FormBuilder builder) {
-            builder.addLabeledComponent(label, textField, 1, false)
-                    .addComponentToRightColumn(tooltip, 1)
-                    .addComponentFillVertically(new JPanel(), 0);
-        }
-
-        public void hide() {
-            this.textField.setVisible(false);
-            this.label.setVisible(false);
-            this.tooltip.setVisible(false);
-        }
-
-        public void show() {
-            this.textField.setVisible(true);
-            this.label.setVisible(true);
-            this.tooltip.setVisible(true);
-        }
-
-        public String getText() {
-            return this.textField.getText();
-        }
-
-        public void setText(String text) {
-            this.textField.setText(text);
-        }
-    }
-
-    public static class RegexpTableColumnInfo extends ColumnInfo<ReplacementEntity, String> {
-
-        public RegexpTableColumnInfo(@NlsContexts.ColumnName String name) {
-            super("Regexp");
-        }
-
-        @Override
-        public @Nullable String valueOf(ReplacementEntity replacementEntity) {
-            return replacementEntity.getRegexp();
-        }
-
-        @Override
-        public void setValue(ReplacementEntity replacementEntity, String value) {
-            replacementEntity.setRegexp(value);
-        }
-
-        @Override
-        public boolean isCellEditable(ReplacementEntity replacementEntity) {
-            return true;
-        }
-    }
-
-    public static class ReplacementTableColumnInfo extends ColumnInfo<ReplacementEntity, String> {
-
-        public ReplacementTableColumnInfo(@NlsContexts.ColumnName String name) {
-            super("Replace");
-        }
-
-        @Override
-        public @Nullable String valueOf(ReplacementEntity replacementEntity) {
-            return replacementEntity.getReplacement();
-        }
-
-        @Override
-        public void setValue(ReplacementEntity replacementEntity, String value) {
-            replacementEntity.setReplacement(value);
-        }
-
-        @Override
-        public boolean isCellEditable(ReplacementEntity replacementEntity) {
-            return true;
-        }
-
     }
 }

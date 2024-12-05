@@ -7,10 +7,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
 import org.jetbrains.annotations.NotNull;
 
@@ -127,7 +124,19 @@ public final class KubernetesService {
         final Process proc;
         String message = "Error while executing command " + command + " in pod " + podName + " namespace " + namespace;
         try {
-            proc = exec.exec(namespace, podName, new String[]{"sh", "-c", command}, false);
+            V1Pod pod = api.listNamespacedPod(namespace)
+                    .execute().getItems()
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .filter(p -> p.getMetadata() != null)
+                    .filter(p -> p.getMetadata().getName() != null)
+                    .filter(p -> p.getMetadata().getName().startsWith(podName))
+                    .findFirst()
+                    .orElse(null);
+            if (pod == null) {
+                return Map.of();
+            }
+            proc = exec.exec(pod, new String[]{"sh", "-c", command}, false, false);
             try (BufferedReader bufferedReader = proc.inputReader()) {
                 Map<String, String> result = splitEnv(bufferedReader.lines());
                 proc.waitFor();
