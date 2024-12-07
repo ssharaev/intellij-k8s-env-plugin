@@ -2,9 +2,10 @@ package com.ssharaev.k8s.env.plugin.services.providers;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.diagnostic.Logger;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
-import com.ssharaev.k8s.env.plugin.services.KubernetesService;
+import com.ssharaev.k8s.env.plugin.services.NotificationService;
 import com.ssharaev.k8s.env.plugin.services.ReplacementService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,14 +19,16 @@ import java.util.stream.Collectors;
 @Service
 public final class CombinedEnvProvider implements EnvProvider {
 
+    private static final Logger LOGGER = Logger.getInstance(CombinedEnvProvider.class);
+
+
     private final List<EnvProvider> providers;
 
     public CombinedEnvProvider() {
-        KubernetesService kubernetesService = ApplicationManager.getApplication().getService(KubernetesService.class);
-        ConfigMapEnvProvider configMapEnvProvider = new ConfigMapEnvProvider(kubernetesService);
-        SecretEnvProvider secretEnvProvider = new SecretEnvProvider(kubernetesService);
-        PodEnvProvider podEnvProvider = new PodEnvProvider(kubernetesService);
-        PodVaultEnvProvider podVaultEnvProvider = new PodVaultEnvProvider(kubernetesService);
+        ConfigMapEnvProvider configMapEnvProvider = new ConfigMapEnvProvider();
+        SecretEnvProvider secretEnvProvider = new SecretEnvProvider();
+        PodEnvProvider podEnvProvider = new PodEnvProvider();
+        PodVaultEnvProvider podVaultEnvProvider = new PodVaultEnvProvider();
         this.providers = List.of(configMapEnvProvider, secretEnvProvider, podEnvProvider, podVaultEnvProvider);
     }
 
@@ -36,20 +39,26 @@ public final class CombinedEnvProvider implements EnvProvider {
 
     @Override
     public Map<String, String> getEnv(PluginSettings pluginSettings) {
-        if (isSettingsInvalid(pluginSettings)) {
+        if (!pluginSettings.isEnabled() || isSettingsInvalid(pluginSettings)) {
             return Map.of();
         }
-        Map<String, String> result = providers.stream()
-                .filter(p -> p.isApplicable(pluginSettings))
-                .map(p -> p.getEnv(pluginSettings))
-                .map(Map::entrySet)
-                .flatMap(Collection::stream)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1));
-        ReplacementService replacementService =
-                ApplicationManager.getApplication().getService(ReplacementService.class);
-        return replacementService.proceedReplacement(result, pluginSettings.getReplacementEntities());
-
+        try {
+            Map<String, String> result = providers.stream()
+                    .filter(p -> p.isApplicable(pluginSettings))
+                    .map(p -> p.getEnv(pluginSettings))
+                    .map(Map::entrySet)
+                    .flatMap(Collection::stream)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1));
+            ReplacementService replacementService =
+                    ApplicationManager.getApplication().getService(ReplacementService.class);
+            return replacementService.proceedReplacement(result, pluginSettings.getReplacementEntities());
+        } catch (Exception e) {
+            LOGGER.warn("Unable to get env form k8s!", e);
+            NotificationService.notifyWarn("Unable to get env form k8s",
+                    "Error: " + e.getMessage());
+            return Map.of();
+        }
     }
 
     private boolean isSettingsInvalid(PluginSettings pluginSettings) {

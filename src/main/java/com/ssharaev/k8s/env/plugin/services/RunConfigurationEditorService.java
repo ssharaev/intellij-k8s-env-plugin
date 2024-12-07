@@ -1,10 +1,9 @@
 package com.ssharaev.k8s.env.plugin.services;
 
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.util.xmlb.Constants;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
@@ -75,19 +74,32 @@ public final class RunConfigurationEditorService {
         return new ReplacementEntity(element.getAttributeValue(FIND_ATTRIBUTE), element.getAttributeValue(REPLACE_ATTRIBUTE));
     }
 
-    // TODO fix validation
-    public void validateConfiguration(@NotNull RunConfigurationBase<?> configuration, boolean isExecution) throws ConfigurationException {
+    public void validateConfiguration(@NotNull RunConfigurationBase<?> configuration, boolean isExecution) throws ExecutionException {
         try {
             ApplicationManager.getApplication().getService(KubernetesService.class).connected();
         } catch (Exception e) {
-            throw new RuntimeConfigurationWarning("Unable to fetch info from kubernetes cluster!",() -> System.out.println());
+            throw new ExecutionException("Unable to fetch info from kubernetes cluster! Error: " + e.getMessage());
         }
         validatePluginSettings(PluginSettingsProvider.getPluginSetting(configuration));
     }
 
-    private void validatePluginSettings(PluginSettings pluginSettings) throws RuntimeConfigurationWarning {
+    public void enableK8sEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration) {
+        setEnabledEnvProvider(runConfiguration, true);
+    }
+
+    public void disableK8sEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration) {
+        setEnabledEnvProvider(runConfiguration, false);
+    }
+
+    private void setEnabledEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration, boolean enabled) {
+        PluginSettings pluginSetting = PluginSettingsProvider.getPluginSetting(runConfiguration);
+        pluginSetting.setEnabled(enabled);
+        PluginSettingsProvider.putData(runConfiguration, pluginSetting);
+    }
+
+    private void validatePluginSettings(PluginSettings pluginSettings) throws ExecutionException {
         if (pluginSettings.getNamespace() == null) {
-            throw new RuntimeConfigurationWarning("Namespace is empty, Env from kubernetes disabled!");
+            throw new ExecutionException("Namespace is empty!");
         }
     }
 

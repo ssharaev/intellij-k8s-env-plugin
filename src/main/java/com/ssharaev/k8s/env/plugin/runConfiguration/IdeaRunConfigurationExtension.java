@@ -5,10 +5,10 @@ import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.ssharaev.k8s.env.plugin.services.NotificationService;
 import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
 import com.ssharaev.k8s.env.plugin.services.RunConfigurationEditorService;
 import com.ssharaev.k8s.env.plugin.services.providers.CombinedEnvProvider;
@@ -20,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
+
+    private static final String NOTIFICATION_TITLE = "Kubernetes env disabled";
 
     @Nullable
     @Override
@@ -50,10 +52,19 @@ public class IdeaRunConfigurationExtension extends RunConfigurationExtension {
     }
 
     @Override
-    protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) throws ConfigurationException {
-        ApplicationManager.getApplication().getService(RunConfigurationEditorService.class).validateConfiguration(configuration, isExecution);
+    protected void validateConfiguration(@NotNull RunConfigurationBase configuration, boolean isExecution) {
+        RunConfigurationEditorService runConfigurationEditorService =
+                ApplicationManager.getApplication().getService(RunConfigurationEditorService.class);
+        try {
+            runConfigurationEditorService.validateConfiguration(configuration, isExecution);
+            runConfigurationEditorService.enableK8sEnvProvider(configuration);
+        } catch (Exception e) {
+            if (isExecution) {
+                NotificationService.notifyWarn(NOTIFICATION_TITLE, e.getMessage());
+            }
+            runConfigurationEditorService.disableK8sEnvProvider(configuration);
+        }
     }
-
 
     @Override
     public <T extends RunConfigurationBase<?>> void updateJavaParameters(

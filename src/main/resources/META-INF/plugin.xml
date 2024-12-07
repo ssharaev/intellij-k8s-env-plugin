@@ -10,6 +10,7 @@
     <depends>org.jetbrains.idea.maven</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup displayType="BALLOON" id="com.ssharaev.k8sEnv"/>
         <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.runConfiguration.IdeaRunConfigurationExtension"/>
     </extensions>
 

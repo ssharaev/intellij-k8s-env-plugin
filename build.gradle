@@ -26,8 +26,6 @@ intellij {
   ]
 }
 
-
-
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
   groups.empty()
@@ -36,6 +34,7 @@ changelog {
 
 dependencies {
   implementation 'io.kubernetes:client-java:22.0.0'
+  implementation 'org.apache.commons:commons-collections4:4.4'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
@@ -49,6 +48,6 @@ tasks {
 
   patchPluginXml {
     sinceBuild.set("233")
-    untilBuild.set("242.*")
+    untilBuild.set("245")
   }
 }

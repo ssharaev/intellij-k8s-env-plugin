@@ -15,6 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class PluginSettings {
 
+    @Builder.Default
+    private boolean enabled = true;
+
     @NotNull
     @Builder.Default
     private EnvMode envMode = EnvMode.CONFIGMAP_AND_SECRET;

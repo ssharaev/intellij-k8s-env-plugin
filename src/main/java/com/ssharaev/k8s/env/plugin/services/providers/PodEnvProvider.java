@@ -1,5 +1,6 @@
 package com.ssharaev.k8s.env.plugin.services.providers;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
@@ -12,8 +13,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public final class PodEnvProvider implements EnvProvider {
 
-    private final KubernetesService kubernetesService;
-
     @Override
     public boolean isApplicable(PluginSettings pluginSettings) {
         return EnvMode.POD_ENV == pluginSettings.getEnvMode();
@@ -24,6 +23,6 @@ public final class PodEnvProvider implements EnvProvider {
         if (pluginSettings.getPodName() == null) {
             return Map.of();
         }
-        return kubernetesService.getEnvFromPod(pluginSettings.getNamespace(), pluginSettings.getPodName());
+        return ApplicationManager.getApplication().getService(KubernetesService.class).getEnvFromPod(pluginSettings.getNamespace(), pluginSettings.getPodName());
     }
 }

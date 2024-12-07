@@ -25,10 +25,12 @@ public final class KubernetesService {
 
     private static final Logger LOGGER = Logger.getInstance(KubernetesService.class);
 
-    private final CoreV1Api api;
+    private CoreV1Api api;
 
-    // TODO error handling
-    public KubernetesService() {
+    private CoreV1Api getApi() {
+        if (api != null) {
+            return api;
+        }
         ApiClient client;
         try {
             client = Config.defaultClient();
@@ -36,19 +38,33 @@ public final class KubernetesService {
             client.setHttpClient(client.getHttpClient().newBuilder()
                     .readTimeout(10, TimeUnit.SECONDS)
                     .build());
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to connect to the k8s cluster", e);
+            this.api = new CoreV1Api(client);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to connect to k8s cluster!", e);
         }
-        this.api = new CoreV1Api(client);
+        return api;
+    }
+
+    public KubernetesService() {
+        getApi();
     }
 
     public void connected() throws ApiException {
-        api.listNamespace().execute();
+        CoreV1Api coreV1Api = getApi();
+        if (coreV1Api == null) {
+            return;
+        }
+        coreV1Api.listNamespace().execute();
     }
 
     public List<String> getNamespaces() {
         try {
-            return api.listNamespace().execute().getItems()
+            CoreV1Api coreV1Api = getApi();
+            if (coreV1Api == null) {
+                LOGGER.warn("Error while getting namespaces!");
+                return List.of();
+            }
+            return coreV1Api.listNamespace().execute().getItems()
                     .stream()
                     .filter(Objects::nonNull)
                     .map(V1Namespace::getMetadata)
@@ -56,7 +72,7 @@ public final class KubernetesService {
                     .map(V1ObjectMeta::getName)
                     .filter(Objects::nonNull)
                     .toList();
-        } catch (ApiException e) {
+        } catch (ApiException | RuntimeException e) {
             LOGGER.warn("Error while getting namespaces!", e);
             return List.of();
         }
@@ -68,7 +84,12 @@ public final class KubernetesService {
             return Map.of();
         }
         try {
-            V1ConfigMapList configMapList = api.listNamespacedConfigMap(namespace)
+            CoreV1Api coreV1Api = getApi();
+            if (coreV1Api == null) {
+                LOGGER.warn("Error while getting configmaps from namespace " + namespace);
+                return Map.of();
+            }
+            V1ConfigMapList configMapList = coreV1Api.listNamespacedConfigMap(namespace)
                     .limit(10)
                     .execute();
             Set<String> names = new HashSet<>(configmapNames);
@@ -79,7 +100,7 @@ public final class KubernetesService {
                     .filter(configmap -> names.contains(configmap.getMetadata().getName()))
                     .flatMap(configmap -> configmap.getData().entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1));
-        } catch (ApiException e) {
+        } catch (ApiException | RuntimeException e) {
             LOGGER.warn("Error while getting configmaps from namespace " + namespace);
             return Map.of();
         }
@@ -91,7 +112,12 @@ public final class KubernetesService {
             return Map.of();
         }
         try {
-            V1SecretList secretList = api.listNamespacedSecret(namespace)
+            CoreV1Api coreV1Api = getApi();
+            if (coreV1Api == null) {
+                LOGGER.warn("Error while getting secrets from namespace " + namespace);
+                return Map.of();
+            }
+            V1SecretList secretList = coreV1Api.listNamespacedSecret(namespace)
                     .limit(10)
                     .execute();
             Set<String> names = new HashSet<>(secretNames);
@@ -102,7 +128,7 @@ public final class KubernetesService {
                     .filter(secret -> names.contains(secret.getMetadata().getName()))
                     .flatMap(secret -> secret.getData().entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, t -> new String(t.getValue()), (e1, e2) -> e1));
-        } catch (ApiException e) {
+        } catch (ApiException | RuntimeException e) {
             LOGGER.warn("Error while getting secrets from namespace " + namespace);
             return Map.of();
         }
@@ -124,7 +150,12 @@ public final class KubernetesService {
         final Process proc;
         String message = "Error while executing command " + command + " in pod " + podName + " namespace " + namespace;
         try {
-            V1Pod pod = api.listNamespacedPod(namespace)
+            CoreV1Api coreV1Api = getApi();
+            if (coreV1Api == null) {
+                LOGGER.warn(message);
+                return Map.of();
+            }
+            V1Pod pod = coreV1Api.listNamespacedPod(namespace)
                     .execute().getItems()
                     .stream()
                     .filter(Objects::nonNull)
@@ -145,7 +176,7 @@ public final class KubernetesService {
                 LOGGER.warn(message, e);
                 return Map.of();
             }
-        } catch (ApiException | IOException e) {
+        } catch (ApiException | IOException | RuntimeException e) {
             LOGGER.warn(message, e);
             return Map.of();
         }
