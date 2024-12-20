@@ -1,15 +1,13 @@
 package com.ssharaev.k8s.env.plugin.services.providers;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.Service;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
-import com.ssharaev.k8s.env.plugin.services.KubernetesService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
-@Service
+import static com.ssharaev.k8s.env.plugin.Utils.getKubernetesService;
+
 @RequiredArgsConstructor
 public final class PodVaultEnvProvider implements EnvProvider {
 
@@ -23,6 +21,6 @@ public final class PodVaultEnvProvider implements EnvProvider {
         if (pluginSettings.getPodName() == null || pluginSettings.getPodName().isBlank()) {
             return Map.of();
         }
-        return ApplicationManager.getApplication().getService(KubernetesService.class).getVaultEnvFromPod(pluginSettings.getNamespace(), pluginSettings.getPodName());
+        return getKubernetesService().getVaultEnvFromPod(pluginSettings.getNamespace(), pluginSettings.getPodName());
     }
 }

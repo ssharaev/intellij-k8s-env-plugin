@@ -11,15 +11,15 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup displayType="BALLOON" id="com.ssharaev.k8sEnv"/>
-        <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.runConfiguration.IdeaRunConfigurationExtension"/>
+        <runConfigurationExtension implementation="com.ssharaev.k8s.env.plugin.run.configuration.IdeaRunConfigurationExtension"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-        <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.runConfiguration.GradleK8sEnvExecutionEnvironmentProvider" order="first"/>
+        <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.run.configuration.GradleK8sEnvExecutionEnvironmentProvider" order="first"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.idea.maven">
-        <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.runConfiguration.MavenK8sEnvExecutionEnvironmentProvider" order="first"/>
+        <executionEnvironmentProvider implementation="com.ssharaev.k8s.env.plugin.run.configuration.MavenK8sEnvExecutionEnvironmentProvider" order="first"/>
     </extensions>
 
     <description>

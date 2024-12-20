@@ -3,12 +3,9 @@ package com.ssharaev.k8s.env.plugin.services.providers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
-import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.services.NotificationService;
 import com.ssharaev.k8s.env.plugin.services.ReplacementService;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,11 +13,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.ssharaev.k8s.env.plugin.Utils.NOTIFICATION_TITLE;
+import static com.ssharaev.k8s.env.plugin.Utils.getKubernetesService;
+
 @Service
 public final class CombinedEnvProvider implements EnvProvider {
 
     private static final Logger LOGGER = Logger.getInstance(CombinedEnvProvider.class);
-
 
     private final List<EnvProvider> providers;
 
@@ -39,8 +38,13 @@ public final class CombinedEnvProvider implements EnvProvider {
 
     @Override
     public Map<String, String> getEnv(PluginSettings pluginSettings) {
-        if (!pluginSettings.isEnabled() || isSettingsInvalid(pluginSettings)) {
+        if (!pluginSettings.isEnabled()) {
             return Map.of();
+        }
+        try {
+            getKubernetesService().connected();
+        } catch (Exception e) {
+            NotificationService.notifyWarn(NOTIFICATION_TITLE, e.getMessage());
         }
         try {
             Map<String, String> result = providers.stream()
@@ -55,21 +59,8 @@ public final class CombinedEnvProvider implements EnvProvider {
             return replacementService.proceedReplacement(result, pluginSettings.getReplacementEntities());
         } catch (Exception e) {
             LOGGER.warn("Unable to get env form k8s!", e);
-            NotificationService.notifyWarn("Unable to get env form k8s",
-                    "Error: " + e.getMessage());
+            NotificationService.notifyWarn("Unable to get env form k8s", "Error: " + e.getMessage());
             return Map.of();
         }
-    }
-
-    private boolean isSettingsInvalid(PluginSettings pluginSettings) {
-        return StringUtils.isBlank(pluginSettings.getNamespace()) ||
-
-                pluginSettings.getEnvMode() == EnvMode.POD_ENV && StringUtils.isBlank(pluginSettings.getPodName()) ||
-
-                pluginSettings.getEnvMode() == EnvMode.POD_VAULT && StringUtils.isBlank(pluginSettings.getPodName()) ||
-
-                pluginSettings.getEnvMode() == EnvMode.CONFIGMAP_AND_SECRET
-                        && CollectionUtils.isEmpty(pluginSettings.getConfigmapNames())
-                        && CollectionUtils.isEmpty(pluginSettings.getSecretNames());
     }
 }

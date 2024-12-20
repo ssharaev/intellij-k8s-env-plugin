@@ -1,4 +1,4 @@
-package com.ssharaev.k8s.env.plugin.runConfiguration;
+package com.ssharaev.k8s.env.plugin.run.configuration;
 
 import com.intellij.execution.Executor;
 import com.intellij.execution.application.ApplicationConfiguration;

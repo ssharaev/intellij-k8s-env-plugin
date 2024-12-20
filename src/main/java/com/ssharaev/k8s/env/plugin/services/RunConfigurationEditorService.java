@@ -2,15 +2,14 @@ package com.ssharaev.k8s.env.plugin.services;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.util.xmlb.Constants;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.model.ReplacementEntity;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.EnumUtils;
+import com.ssharaev.k8s.env.plugin.services.providers.CombinedEnvProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,10 +17,15 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.ssharaev.k8s.env.plugin.Utils.DELIMITER;
+import static com.ssharaev.k8s.env.plugin.Utils.NOTIFICATION_TITLE;
+import static com.ssharaev.k8s.env.plugin.Utils.getEnum;
+import static com.ssharaev.k8s.env.plugin.Utils.isEmpty;
 import static com.ssharaev.k8s.env.plugin.Utils.splitIfNotEmpty;
 
 @Service
 public final class RunConfigurationEditorService {
+
+    private static final Logger LOGGER = Logger.getInstance(CombinedEnvProvider.class);
 
     private static final String ENV_MODE_FIELD = "mode";
     private static final String NAMESPACE_FIELD = "namespace";
@@ -39,7 +43,7 @@ public final class RunConfigurationEditorService {
     }
 
     public void readExternal(@NotNull RunConfigurationBase<?> runConfiguration, @NotNull Element element) {
-        EnvMode mode = EnumUtils.getEnum(
+        EnvMode mode = getEnum(
                 EnvMode.class, JDOMExternalizerUtil.readField(element, POD_NAME_FIELD), EnvMode.CONFIGMAP_AND_SECRET);
         String namespace = JDOMExternalizerUtil.readField(element, NAMESPACE_FIELD);
         List<String> configmapNames = splitIfNotEmpty(JDOMExternalizerUtil.readField(element, CONFIGMAP_NAMES_FIELD));
@@ -74,20 +78,25 @@ public final class RunConfigurationEditorService {
         return new ReplacementEntity(element.getAttributeValue(FIND_ATTRIBUTE), element.getAttributeValue(REPLACE_ATTRIBUTE));
     }
 
-    public void validateConfiguration(@NotNull RunConfigurationBase<?> configuration, boolean isExecution) throws ExecutionException {
-        try {
-            ApplicationManager.getApplication().getService(KubernetesService.class).connected();
-        } catch (Exception e) {
-            throw new ExecutionException("Unable to fetch info from kubernetes cluster! Error: " + e.getMessage());
+    public void validateConfiguration(@NotNull RunConfigurationBase<?> configuration, boolean isExecution) {
+        LOGGER.debug("Validating runConfiguration: " + configuration + ", isExecution: " + isExecution);
+        if (!isExecution) {
+            return;
         }
-        validatePluginSettings(PluginSettingsProvider.getPluginSetting(configuration));
+        try {
+            validatePluginSettings(PluginSettingsProvider.getPluginSetting(configuration));
+            enableK8sEnvProvider(configuration);
+        } catch (Exception e) {
+            NotificationService.notifyWarn(NOTIFICATION_TITLE, e.getMessage());
+            disableK8sEnvProvider(configuration);
+        }
     }
 
-    public void enableK8sEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration) {
+    private void enableK8sEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration) {
         setEnabledEnvProvider(runConfiguration, true);
     }
 
-    public void disableK8sEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration) {
+    private void disableK8sEnvProvider(@NotNull RunConfigurationBase<?> runConfiguration) {
         setEnabledEnvProvider(runConfiguration, false);
     }
 
@@ -98,10 +107,21 @@ public final class RunConfigurationEditorService {
     }
 
     private void validatePluginSettings(PluginSettings pluginSettings) throws ExecutionException {
-        if (pluginSettings.getNamespace() == null) {
-            throw new ExecutionException("Namespace is empty!");
+        if (isSettingsInvalid(pluginSettings)) {
+            throw new ExecutionException("Settings is invalid");
         }
+
     }
+
+    private boolean isSettingsInvalid(PluginSettings pluginSettings) {
+        return pluginSettings.getNamespace() == null ||
+                pluginSettings.getEnvMode() == EnvMode.POD_ENV && pluginSettings.getPodName() == null ||
+                pluginSettings.getEnvMode() == EnvMode.POD_VAULT && pluginSettings.getPodName() == null ||
+                pluginSettings.getEnvMode() == EnvMode.CONFIGMAP_AND_SECRET
+                        && isEmpty(pluginSettings.getConfigmapNames())
+                        && isEmpty(pluginSettings.getSecretNames());
+    }
+
 
     public void writeExternal(@NotNull RunConfigurationBase<?> runConfiguration, @NotNull Element element) {
         PluginSettings pluginSetting = PluginSettingsProvider.getPluginSetting(runConfiguration);
@@ -115,7 +135,7 @@ public final class RunConfigurationEditorService {
     }
 
     private void writeReplacementEntities(List<ReplacementEntity> replacementEntities, @NotNull Element element) {
-        if (CollectionUtils.isEmpty(replacementEntities)) {
+        if (isEmpty(replacementEntities)) {
             return;
         }
         Element replacementEntitiesParent = new Element(Constants.LIST);

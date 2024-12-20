@@ -1,4 +1,4 @@
-package com.ssharaev.k8s.env.plugin.runConfiguration;
+package com.ssharaev.k8s.env.plugin.run.configuration;
 
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.openapi.options.SettingsEditor;
@@ -7,7 +7,7 @@ import com.ssharaev.k8s.env.plugin.services.PluginSettingsProvider;
 import com.ssharaev.k8s.env.plugin.ui.RunConfigurationPanelProvider;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 public class RunConfigurationSettingsEditor<T extends RunConfigurationBase<?>> extends SettingsEditor<T> {
 

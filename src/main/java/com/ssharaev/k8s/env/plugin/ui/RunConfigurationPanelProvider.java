@@ -1,8 +1,8 @@
 package com.ssharaev.k8s.env.plugin.ui;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.MutableCollectionComboBoxModel;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
@@ -12,19 +12,20 @@ import com.intellij.util.ui.ListTableModel;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
 import com.ssharaev.k8s.env.plugin.model.ReplacementEntity;
-import com.ssharaev.k8s.env.plugin.services.KubernetesService;
 import com.ssharaev.k8s.env.plugin.ui.replacement.RegexpTableColumnInfo;
 import com.ssharaev.k8s.env.plugin.ui.replacement.ReplacementTableColumnInfo;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.event.PopupMenuEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ssharaev.k8s.env.plugin.Utils.emptyIfNull;
+import static com.ssharaev.k8s.env.plugin.Utils.getKubernetesService;
 import static com.ssharaev.k8s.env.plugin.Utils.joinIfNotNull;
 import static com.ssharaev.k8s.env.plugin.Utils.splitIfNotEmpty;
-import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+import static com.ssharaev.k8s.env.plugin.Utils.trimToNull;
 
 public class RunConfigurationPanelProvider {
 
@@ -50,6 +51,12 @@ public class RunConfigurationPanelProvider {
                 new ReplacementTableColumnInfo("Replacement"));
         this.namespaceComboBoxModel = new MutableCollectionComboBoxModel<>(new ArrayList<>());
         ComboBox<String> namespaceComboBox = new ComboBox<>(namespaceComboBoxModel);
+        namespaceComboBox.addPopupMenuListener(new PopupMenuListenerAdapter() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                updateNamespaceComboBoxModel();
+            }
+        });
         JBTable replacementEntityTable = new JBTable(replacementModel);
 
         ToolbarDecorator decorator = ToolbarDecorator
@@ -79,12 +86,12 @@ public class RunConfigurationPanelProvider {
 
     public PluginSettings getState() {
         EnvMode mode = EnvMode.values()[envModeComboBox.getSelectedIndex()];
-        String namespace = StringUtils.trimToNull(namespaceComboBoxModel.getSelected());
+        String namespace = trimToNull(namespaceComboBoxModel.getSelected());
         List<String> configmapNames = splitIfNotEmpty(configmapsPanel.getText());
         List<String> secretNames = splitIfNotEmpty(secretsPanel.getText());
-        String podName = StringUtils.trimToNull(podsPanel.getText());
+        String podName = trimToNull(podsPanel.getText());
         List<ReplacementEntity> replacementEntities = emptyIfNull(replacementModel.getItems()).stream()
-                .filter(e -> StringUtils.isNotBlank(e.getReplacement()))
+                .filter(e -> e.getReplacement() != null && !e.getReplacement().isBlank())
                 .toList();
         return PluginSettings.builder()
                 .envMode(mode)
@@ -97,15 +104,20 @@ public class RunConfigurationPanelProvider {
     }
 
     public void setState(PluginSettings pluginSettings) {
-        KubernetesService kubernetesService = ApplicationManager.getApplication().getService(KubernetesService.class);
         String envModeName = pluginSettings.getEnvMode().getBeautyName();
-        namespaceComboBoxModel.update(kubernetesService.getNamespaces());
+        updateNamespaceComboBoxModel();
         namespaceComboBoxModel.setSelectedItem(pluginSettings.getNamespace());
         envModeComboBox.setItem(envModeName);
         configmapsPanel.setText(joinIfNotNull(pluginSettings.getConfigmapNames()));
         secretsPanel.setText(joinIfNotNull(pluginSettings.getSecretNames()));
         podsPanel.setText(pluginSettings.getPodName());
         emptyIfNull(pluginSettings.getReplacementEntities()).forEach(replacementModel::addRow);
+    }
+
+    private void updateNamespaceComboBoxModel() {
+        String selected = namespaceComboBoxModel.getSelected();
+        namespaceComboBoxModel.update(getKubernetesService().getNamespaces());
+        namespaceComboBoxModel.setSelectedItem(selected);
     }
 
     private void updatePanel() {

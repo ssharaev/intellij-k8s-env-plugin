@@ -1,12 +1,12 @@
 package com.ssharaev.k8s.env.plugin.services.providers;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.ssharaev.k8s.env.plugin.model.EnvMode;
 import com.ssharaev.k8s.env.plugin.model.PluginSettings;
-import com.ssharaev.k8s.env.plugin.services.KubernetesService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
+
+import static com.ssharaev.k8s.env.plugin.Utils.getKubernetesService;
 
 @RequiredArgsConstructor
 public class SecretEnvProvider implements EnvProvider {
@@ -18,6 +18,6 @@ public class SecretEnvProvider implements EnvProvider {
 
   @Override
   public Map<String, String> getEnv(PluginSettings pluginSettings) {
-    return ApplicationManager.getApplication().getService(KubernetesService.class).getEnvFromSecrets(pluginSettings.getNamespace(), pluginSettings.getSecretNames());
+    return getKubernetesService().getEnvFromSecrets(pluginSettings.getNamespace(), pluginSettings.getSecretNames());
   }
 }
