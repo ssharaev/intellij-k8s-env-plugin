@@ -1,8 +1,8 @@
 # Kubernetes Run Configuration Env
 
 ![Build](https://github.com/ssharaev/intelij-k8s-env-plugin/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/26165.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/26165.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 
 This plugin allows you to add environment variables to your run configuration from a k8s cluster. It uses the current context from `$KUBECONFIG` or `$HOME/.kube/config` file.
 
@@ -37,6 +37,3 @@ Also, you can replace your variable values using regexp.
 # License
 
 Copyright (c) 2024 Sviatoslav Sharaev. See the [LICENSE](./LICENSE) file for license rights and limitations (MIT).
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
