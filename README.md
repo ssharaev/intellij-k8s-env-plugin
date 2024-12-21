@@ -1,8 +1,8 @@
 # Kubernetes Run Configuration Env
 
 ![Build](https://github.com/ssharaev/intelij-k8s-env-plugin/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/26165.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/26165.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/26165.svg)](https://plugins.jetbrains.com/plugin/26165)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/26165.svg)](https://plugins.jetbrains.com/plugin/26165)
 
 This plugin allows you to add environment variables to your run configuration from a k8s cluster. It uses the current context from `$KUBECONFIG` or `$HOME/.kube/config` file.
 
@@ -24,9 +24,9 @@ Also, you can replace your variable values using regexp.
   
 - Using JetBrains Marketplace:
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
+  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/26165) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
 
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
+  You can also download the [latest release](https://plugins.jetbrains.com/plugin/26165/versions) from JetBrains Marketplace and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
 - Manually:
