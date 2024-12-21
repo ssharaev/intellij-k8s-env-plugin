@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.ssharaev"
-version = "0.0.1-alfa"
+version = providers.gradleProperty("pluginVersion")
 
 repositories {
   mavenCentral()
@@ -28,6 +28,7 @@ intellij {
 
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
+  path.set(file("CHANGELOG.md").canonicalPath)
   groups.empty()
   repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
 }
@@ -46,7 +47,13 @@ tasks {
   }
 
   patchPluginXml {
-    sinceBuild.set("233")
-    untilBuild.set("245")
+    sinceBuild.set(providers.gradleProperty("pluginSinceBuild").get())
+    untilBuild.set(providers.gradleProperty("pluginUntilBuild").get())
+    changeNotes = provider {
+      changelog.renderItem(changelog.getLatest()
+              .withHeader(false)
+              .withEmptySections(false),
+              org.jetbrains.changelog.Changelog.OutputType.HTML)
+    }
   }
 }

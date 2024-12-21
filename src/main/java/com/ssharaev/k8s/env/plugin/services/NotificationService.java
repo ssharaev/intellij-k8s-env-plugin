@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class NotificationService {
 
-    private static final String NOTIFICATION_GROUP = "com.ssharaev.k8sEnv";
+    private static final String NOTIFICATION_GROUP = "com.ssharaev.k8s.env.plugin";
 
     public static void notifyWarn(@NotNull String title, @NotNull String body) {
         Notifications.Bus.notify(new Notification(NOTIFICATION_GROUP, title, body, NotificationType.WARNING));

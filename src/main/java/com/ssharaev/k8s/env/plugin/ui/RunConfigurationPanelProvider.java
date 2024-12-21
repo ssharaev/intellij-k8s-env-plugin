@@ -47,8 +47,8 @@ public class RunConfigurationPanelProvider {
         this.envModeComboBox = new ComboBox<>(EnvMode.beautyNames());
         this.envModeComboBox.addItemListener(e -> updatePanel());
         this.replacementModel = new ListTableModel<>(
-                new RegexpTableColumnInfo("Regexp"),
-                new ReplacementTableColumnInfo("Replacement"));
+                new RegexpTableColumnInfo("Search"),
+                new ReplacementTableColumnInfo("Replace"));
         this.namespaceComboBoxModel = new MutableCollectionComboBoxModel<>(new ArrayList<>());
         ComboBox<String> namespaceComboBox = new ComboBox<>(namespaceComboBoxModel);
         namespaceComboBox.addPopupMenuListener(new PopupMenuListenerAdapter() {

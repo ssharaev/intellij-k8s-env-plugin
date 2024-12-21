@@ -1,7 +1,6 @@
-<!-- Keep a Changelog guide -> https://keepachangelog.com -->
-
 # intellij-k8s-env Changelog
 
-## [Unreleased]
+## [0.1.0]
 ### Added
-- Draft created
+- Run configuration environment variables from Kubernetes configmap and secrets, 
+container runtime environment, and container Vault runtime environment

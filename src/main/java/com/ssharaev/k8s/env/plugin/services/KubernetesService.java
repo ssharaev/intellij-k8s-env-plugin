@@ -155,7 +155,7 @@ public final class KubernetesService {
     // TODO change command
     public Map<String, String> getVaultEnvFromPod(@NotNull String namespace, @NotNull String podName) {
         LOGGER.debug("Start searching pod k8s vault env for namespace: " + namespace + " and pod name: " + podName);
-        return execInPod(namespace, podName, "printenv");
+        return execInPod(namespace, podName, "/vault/vault-env env");
     }
 
     private Map<String, String> execInPod(@NotNull String namespace, @NotNull String podName, @NotNull String command) {

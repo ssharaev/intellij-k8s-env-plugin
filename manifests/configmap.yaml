@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dev-configmap-two
+  namespace: dev
+data:
+  CONFIGMAP_TWO_FIRST_ENV: 'dev-configmap-two-dev'
+  CONFIGMAP_TWO_SECOND_ENV: 'dev-configmap-two-dev'
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dev-configmap-one
+  namespace: dev
+data:
+  CONFIGMAP_ONE_FIRST_ENV: 'dev-configmap-one'
+  CONFIGMAP_ONE_SECOND_ENV: 'dev-configmap-one'
+
