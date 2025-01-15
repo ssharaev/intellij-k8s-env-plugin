@@ -10,7 +10,8 @@ import java.util.Arrays;
 public enum EnvMode {
     CONFIGMAP_AND_SECRET("Configmaps and secrets"),
     POD_ENV("Pod environment"),
-    POD_VAULT("Pod vault environment");
+    POD_VAULT("Pod vault environment"),
+    DISABLED("Disabled");
 
     private final String beautyName;
 

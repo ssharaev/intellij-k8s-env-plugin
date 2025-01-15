@@ -5,6 +5,7 @@ import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBFont;
@@ -31,9 +32,11 @@ public class RunConfigurationPanelProvider {
 
     private final ComboBox<String> envModeComboBox;
 
-    private final InputTextPanel configmapsPanel;
-    private final InputTextPanel secretsPanel;
-    private final InputTextPanel podsPanel;
+    private final InputTextElement configmapsElement;
+    private final InputTextElement secretsElement;
+    private final InputTextElement podsElement;
+    private final HideableElement<ComboBox<String>> namespacesElement;
+    private final HideableElement<JPanel> replaceTableElement;
     private final ListTableModel<ReplacementEntity> replacementModel;
     private final MutableCollectionComboBoxModel<String> namespaceComboBoxModel;
 
@@ -41,9 +44,9 @@ public class RunConfigurationPanelProvider {
     private final JPanel panel;
 
     public RunConfigurationPanelProvider() {
-        this.configmapsPanel = new InputTextPanel("Configmaps names:", "Separate names with semicolon: configmap1;configmap2");
-        this.secretsPanel = new InputTextPanel("Secrets names:", "Separate names with semicolon: secret1;secret2");
-        this.podsPanel = new InputTextPanel("Pod name prefix:", "E.g. you can use \"nginx\" instead of \"nginx-554b9c67f9-c5cv4\"");
+        this.configmapsElement = new InputTextElement("Configmaps names:", "Separate names with semicolon: configmap1;configmap2", new JBTextField());
+        this.secretsElement = new InputTextElement("Secrets names:", "Separate names with semicolon: secret1;secret2", new JBTextField());
+        this.podsElement = new InputTextElement("Pod name prefix:", "E.g. you can use \"nginx\" instead of \"nginx-554b9c67f9-c5cv4\"", new JBTextField());
         this.envModeComboBox = new ComboBox<>(EnvMode.beautyNames());
         this.envModeComboBox.addItemListener(e -> updatePanel());
         this.replacementModel = new ListTableModel<>(
@@ -57,6 +60,7 @@ public class RunConfigurationPanelProvider {
                 updateNamespaceComboBoxModel();
             }
         });
+        this.namespacesElement = new HideableElement<>("Namespace:", namespaceComboBox);
         JBTable replacementEntityTable = new JBTable(replacementModel);
 
         ToolbarDecorator decorator = ToolbarDecorator
@@ -68,33 +72,36 @@ public class RunConfigurationPanelProvider {
         JBLabel panelLabel = new JBLabel("Environment from Kubernetes");
         panelLabel.setFont(JBFont.regular().asBold());
 
+        this.replaceTableElement = new HideableElement<>("Replace:",
+                "You can use capture groups. E.g. (\\w*)(-dev) and $1-local replace \"env-dev\" to \"env-local\"",
+                decorator.createPanel());
+
         FormBuilder builder = FormBuilder.createFormBuilder()
                 .addSeparator()
                 .addComponent(panelLabel)
-                .addLabeledComponent(new JBLabel("Environment mode:"), envModeComboBox, 1, false)
-                .addLabeledComponent(new JBLabel("Namespace:"), namespaceComboBox, 1, false);
-        configmapsPanel.addToBuilder(builder);
-        secretsPanel.addToBuilder(builder);
-        podsPanel.addToBuilder(builder);
-        this.panel = builder
-                .addLabeledComponent("Replace:", decorator.createPanel(), 1, false)
-                .addTooltip("You can use capture groups. E.g. (\\w*)(-dev) and $1-local replace \"env-dev\" to \"env-local\"")
-                .addComponentFillVertically(new JPanel(), 0)
-                .getPanel();
+                .addLabeledComponent(new JBLabel("Environment mode:"), envModeComboBox, 1, false);
+        namespacesElement.addToBuilder(builder);
+        configmapsElement.addToBuilder(builder);
+        secretsElement.addToBuilder(builder);
+        podsElement.addToBuilder(builder);
+        replaceTableElement.addToBuilder(builder);
+
+        this.panel = builder.getPanel();
         updatePanel();
     }
 
     public PluginSettings getState() {
         EnvMode mode = EnvMode.values()[envModeComboBox.getSelectedIndex()];
         String namespace = trimToNull(namespaceComboBoxModel.getSelected());
-        List<String> configmapNames = splitIfNotEmpty(configmapsPanel.getText());
-        List<String> secretNames = splitIfNotEmpty(secretsPanel.getText());
-        String podName = trimToNull(podsPanel.getText());
+        List<String> configmapNames = splitIfNotEmpty(configmapsElement.getText());
+        List<String> secretNames = splitIfNotEmpty(secretsElement.getText());
+        String podName = trimToNull(podsElement.getText());
         List<ReplacementEntity> replacementEntities = emptyIfNull(replacementModel.getItems()).stream()
                 .filter(e -> e.getReplacement() != null && !e.getReplacement().isBlank())
                 .toList();
         return PluginSettings.builder()
                 .envMode(mode)
+                .enabled(mode != EnvMode.DISABLED)
                 .namespace(namespace)
                 .configmapNames(configmapNames)
                 .secretNames(secretNames)
@@ -104,13 +111,17 @@ public class RunConfigurationPanelProvider {
     }
 
     public void setState(PluginSettings pluginSettings) {
-        String envModeName = pluginSettings.getEnvMode().getBeautyName();
+        EnvMode envMode = pluginSettings.getEnvMode();
+        String envModeName = envMode.getBeautyName();
+        envModeComboBox.setItem(envModeName);
+        if (envMode == EnvMode.DISABLED) {
+            return;
+        }
         updateNamespaceComboBoxModel();
         namespaceComboBoxModel.setSelectedItem(pluginSettings.getNamespace());
-        envModeComboBox.setItem(envModeName);
-        configmapsPanel.setText(joinIfNotNull(pluginSettings.getConfigmapNames()));
-        secretsPanel.setText(joinIfNotNull(pluginSettings.getSecretNames()));
-        podsPanel.setText(pluginSettings.getPodName());
+        configmapsElement.setText(joinIfNotNull(pluginSettings.getConfigmapNames()));
+        secretsElement.setText(joinIfNotNull(pluginSettings.getSecretNames()));
+        podsElement.setText(pluginSettings.getPodName());
         emptyIfNull(pluginSettings.getReplacementEntities()).forEach(replacementModel::addRow);
     }
 
@@ -122,17 +133,28 @@ public class RunConfigurationPanelProvider {
 
     private void updatePanel() {
         EnvMode mode = EnvMode.values()[envModeComboBox.getSelectedIndex()];
+        if (mode == EnvMode.DISABLED) {
+            this.podsElement.hide();
+            this.secretsElement.hide();
+            this.configmapsElement.hide();
+            this.namespacesElement.hide();
+            this.replaceTableElement.hide();
+            panel.repaint();
+            return;
+        }
+        updateNamespaceComboBoxModel();
+        this.namespacesElement.show();
+        this.replaceTableElement.show();
         if (mode == EnvMode.CONFIGMAP_AND_SECRET) {
-            this.podsPanel.hide();
-            this.secretsPanel.show();
-            this.configmapsPanel.show();
+            this.podsElement.hide();
+            this.secretsElement.show();
+            this.configmapsElement.show();
             panel.repaint();
+            return;
         }
-        if (mode != EnvMode.CONFIGMAP_AND_SECRET) {
-            this.podsPanel.show();
-            this.secretsPanel.hide();
-            this.configmapsPanel.hide();
-            panel.repaint();
-        }
+        this.podsElement.show();
+        this.secretsElement.hide();
+        this.configmapsElement.hide();
+        panel.repaint();
     }
 }

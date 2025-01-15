@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.ssharaev"
-version = providers.gradleProperty("pluginVersion")
+version = "0.1.0"
 
 repositories {
   mavenCentral()
@@ -47,8 +47,8 @@ tasks {
   }
 
   patchPluginXml {
-    sinceBuild.set(providers.gradleProperty("pluginSinceBuild").get())
-    untilBuild.set(providers.gradleProperty("pluginUntilBuild").get())
+    sinceBuild.set("233")
+    untilBuild.set(provider { null })
     changeNotes = provider {
       changelog.renderItem(changelog.getLatest()
               .withHeader(false)

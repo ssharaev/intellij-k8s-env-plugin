@@ -84,8 +84,11 @@ public final class RunConfigurationEditorService {
             return;
         }
         try {
-            validatePluginSettings(PluginSettingsProvider.getPluginSetting(configuration));
-            enableK8sEnvProvider(configuration);
+            PluginSettings pluginSetting = PluginSettingsProvider.getPluginSetting(configuration);
+            validatePluginSettings(pluginSetting);
+            if (pluginSetting.getEnvMode() != EnvMode.DISABLED) {
+                enableK8sEnvProvider(configuration);
+            }
         } catch (Exception e) {
             NotificationService.notifyWarn(NOTIFICATION_TITLE, e.getMessage());
             disableK8sEnvProvider(configuration);

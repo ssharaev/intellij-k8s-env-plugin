@@ -1,6 +1,6 @@
 # Kubernetes Run Configuration Env
 
-![Build](https://github.com/ssharaev/intelij-k8s-env-plugin/workflows/Build/badge.svg)
+![Build](https://github.com/ssharaev/intellij-k8s-env-plugin/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/26165.svg)](https://plugins.jetbrains.com/plugin/26165)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/26165.svg)](https://plugins.jetbrains.com/plugin/26165)
 
@@ -31,7 +31,7 @@ Also, you can replace your variable values using regexp.
 
 - Manually:
 
-  Download the [latest release](https://github.com/ssharaev/intelij-k8s-env-plugin/releases/latest) and install it manually using
+  Download the [latest release](https://github.com/ssharaev/intellij-k8s-env-plugin/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
 # License

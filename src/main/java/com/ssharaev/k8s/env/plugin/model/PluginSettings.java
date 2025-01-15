@@ -21,15 +21,18 @@ public class PluginSettings {
     @NotNull
     @Builder.Default
     private EnvMode envMode = EnvMode.CONFIGMAP_AND_SECRET;
-    @Builder.Default
-    private String namespace = "default";
+    @Nullable
+    private String namespace;
+    @NotNull
     @Builder.Default
     private List<String> configmapNames = List.of();
+    @NotNull
     @Builder.Default
     private List<String> secretNames = List.of();
     @Nullable
     private String podName;
 
+    @NotNull
     @Builder.Default
     private List<ReplacementEntity> replacementEntities = List.of();
 
