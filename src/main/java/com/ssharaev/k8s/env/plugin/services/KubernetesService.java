@@ -54,6 +54,10 @@ public final class KubernetesService {
         return api;
     }
 
+    public KubernetesService(CoreV1Api api) {
+        this.api = api;
+    }
+
     public KubernetesService() {
         try {
             getApi();
@@ -200,6 +204,7 @@ public final class KubernetesService {
                 .filter(Objects::nonNull)
                 .filter(s -> s.contains(POD_ENV_DELIMITER))
                 .map(s -> s.split(POD_ENV_DELIMITER))
+                .filter(arr -> arr.length == 2)
                 .collect(Collectors.toMap(arr -> arr[0], arr -> arr[1], (e1, e2) -> e1));
     }
 }
