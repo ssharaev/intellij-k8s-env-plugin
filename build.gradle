@@ -34,7 +34,7 @@ changelog {
 }
 
 dependencies {
-  implementation 'io.kubernetes:client-java:22.0.0'
+  implementation 'io.kubernetes:client-java:23.0.0-legacy'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
