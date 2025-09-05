@@ -35,10 +35,10 @@ changelog {
 
 dependencies {
   implementation 'io.kubernetes:client-java:22.0.0'
-  compileOnly 'org.projectlombok:lombok:1.18.36'
-  annotationProcessor 'org.projectlombok:lombok:1.18.36'
+  compileOnly 'org.projectlombok:lombok:1.18.40'
+  annotationProcessor 'org.projectlombok:lombok:1.18.40'
 
-  testCompileOnly('org.projectlombok:lombok:1.18.36')
+  testCompileOnly('org.projectlombok:lombok:1.18.40')
   testImplementation(libs.junit)
   testImplementation (libs.mockito)
 }
